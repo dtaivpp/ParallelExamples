@@ -11,7 +11,7 @@ void* thread_function(void* rank);
 int data_count = 20;
 float data[] = {1.3,2.9,0.4,0.3,1.3,4.4,1.7,0.4,3.2,0.3,4.9,2.4,3.1,4.4,3.9,0.4,4.2,4.5,4.9,0.9};
 int bin_count = 5;
-int bin_counts[5];
+int bin_counts[5] = {0,0,0,0,0};
 float bin_maxes[5];
 float max_meas = 5.0, min_meas = 0.0, bin_width;
 
@@ -27,11 +27,11 @@ int main (int argc, char* argv[]){
         pthread_create(&thread_handles[thread],NULL,thread_function,(void*)thread);
     }
 
-    int* local_bin_counts = malloc(thread_count * 5 * sizeof(int));
+    int *local_bin_counts = malloc(bin_count*sizeof(int));
     
     for (thread = 0; thread < thread_count; thread++){
         pthread_join(&thread_handles[thread], &local_bin_counts);
-            printf("Thread Number: %ld \n",thread);
+            printf("\nThread Number: %ld \n",thread);
             for (int i = 0; i < bin_count; i++){
                 printf("    Recieved: %d", local_bin_counts[i]);
                 bin_counts[i] += local_bin_counts[i];
@@ -47,7 +47,7 @@ int main (int argc, char* argv[]){
 }
 
 void* thread_function(void* rank){
-    long my_rank = (long) rank;
+ /*    long my_rank = (long) rank;
     int bin_width= (max_meas - min_meas) / bin_count;
     int local_bin_counts[] = {0,0,0,0,0};
     
@@ -61,12 +61,14 @@ void* thread_function(void* rank){
     int local_end, local_start;
 
     // Overlapping
-    if (my_rank != 0){
+    // If my rank is not that of the last thread
+    if (my_rank != thread_count-1){
         //Data subset if not process 0
         local_start = my_rank * chunk_size;
         local_end = local_start + chunk_size;
     }
-    if (my_rank == 0){
+    // If I am the last thread
+    if (my_rank == thread_count-1){
         //Data subset for rank 0
         //Gets the remaining unassigned data points from remainder
         local_start = 0;
@@ -79,7 +81,7 @@ void* thread_function(void* rank){
         for(int j = 0; j < bin_count; j++){
             if (j != 0){
                 //Test of the sorting algorithm
-                //printf(" %.1f <= %.1f < %.1f \n", bin_maxes[i-1], data, bin_maxes[i]);
+                printf(" %.1f <= %.1f < %.1f \n", bin_maxes[i-1], data, bin_maxes[i]);
                 if (bin_maxes[j-1] <= data[i] && data[i] < bin_maxes[j]){
                     local_bin_counts[j]++;
                 }
@@ -89,11 +91,12 @@ void* thread_function(void* rank){
                 }
             }
         }
-    }
-    return local_bin_counts;
+    } */
+    int *local_bin_counts = malloc(bin_count * sizeof(int));
+    pthread_exit(local_bin_counts);
 }
 
-int Find_bin(float data,float bin_maxes[], float bin_count, float min_meas){
+/* int Find_bin(float data,float bin_maxes[], float bin_count, float min_meas){
     for(int i = 0; i < bin_count; i++){
         if (i != 0){
             //Test of the sorting algorithm
@@ -107,5 +110,5 @@ int Find_bin(float data,float bin_maxes[], float bin_count, float min_meas){
             }
         }
     }
-}
+} */
 
