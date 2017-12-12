@@ -26,14 +26,13 @@ int main (int argc, char* argv[]){
     for (thread = 0; thread < thread_count; thread++){
         pthread_create(&thread_handles[thread],NULL,thread_function,(void*)thread);
     }
-
-    int *local_bin_counts = malloc(bin_count*sizeof(int));
     
+    int * local_bin_counts;
     for (thread = 0; thread < thread_count; thread++){
-        pthread_join(&thread_handles[thread], &local_bin_counts);
+        pthread_join(thread_handles[thread], (void**)&local_bin_counts);
             printf("\nThread Number: %ld \n",thread);
             for (int i = 0; i < bin_count; i++){
-                printf("    Recieved: %d", local_bin_counts[i]);
+                printf("    Recieved: %d\n", local_bin_counts[i]);
                 bin_counts[i] += local_bin_counts[i];
             }
     }
@@ -47,10 +46,15 @@ int main (int argc, char* argv[]){
 }
 
 void* thread_function(void* rank){
- /*    long my_rank = (long) rank;
+    long my_rank = (long) rank;
     int bin_width= (max_meas - min_meas) / bin_count;
-    int local_bin_counts[] = {0,0,0,0,0};
-    
+    int * local_bin_counts[] = malloc(bin_count*sizeof(int));
+    local_bin_counts[0]=0;
+    local_bin_counts[1]=0;
+    local_bin_counts[2]=0;
+    local_bin_counts[3]=0;
+    local_bin_counts[4]=0;
+
     for(int b = 0; b < bin_count; b++){
         bin_maxes[b] = min_meas + bin_width*(b+1);
         //printf(" %.1f\n", bin_maxes[b]);
@@ -91,9 +95,10 @@ void* thread_function(void* rank){
                 }
             }
         }
-    } */
-    int *local_bin_counts = malloc(bin_count * sizeof(int));
-    pthread_exit(local_bin_counts);
+    }
+    //int * local_bin_counts = malloc(bin_count*sizeof(int));
+    
+    return local_bin_counts;
 }
 
 /* int Find_bin(float data,float bin_maxes[], float bin_count, float min_meas){
