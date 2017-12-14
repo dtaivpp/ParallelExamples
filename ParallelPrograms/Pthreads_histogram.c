@@ -27,20 +27,20 @@ int main (int argc, char* argv[]){
         pthread_create(&thread_handles[thread],NULL,thread_function,(void*)thread);
     }
     
-    int * local_bin_counts;
+    int * returned_counts;
     for (thread = 0; thread < thread_count; thread++){
-        pthread_join(thread_handles[thread], (void**)&local_bin_counts);
-            printf("\nThread Number: %ld \n",thread);
+        pthread_join(thread_handles[thread], &returned_counts);
             for (int i = 0; i < bin_count; i++){
-                printf("    Recieved: %d\n", local_bin_counts[i]);
-                bin_counts[i] += local_bin_counts[i];
+                bin_counts[i] += returned_counts[i];
             }
     }
 
-/*     for (int i = 0; i < bin_count; i++){
+    //Print Final Counts
+    for (int i = 0; i < bin_count; i++){
         printf(" %d\n",bin_counts[i]);
-    } */
+    }
     
+    free (returned_counts);
     free(thread_handles);
     return 0;
 }
@@ -48,16 +48,16 @@ int main (int argc, char* argv[]){
 void* thread_function(void* rank){
     long my_rank = (long) rank;
     int bin_width= (max_meas - min_meas) / bin_count;
-    int * local_bin_counts[] = malloc(bin_count*sizeof(int));
-    local_bin_counts[0]=0;
-    local_bin_counts[1]=0;
-    local_bin_counts[2]=0;
-    local_bin_counts[3]=0;
-    local_bin_counts[4]=0;
+    int *local_bin_counts = malloc(bin_count*sizeof(int));
+    
+    //Initialize the array
+    for (int i = 0; i < bin_count; i++){
+        local_bin_counts[i] = 0;
+    }
 
+    //Initialize bin maxes
     for(int b = 0; b < bin_count; b++){
         bin_maxes[b] = min_meas + bin_width*(b+1);
-        //printf(" %.1f\n", bin_maxes[b]);
     }
 
     int chunk_size = data_count / thread_count;
@@ -75,17 +75,16 @@ void* thread_function(void* rank){
     if (my_rank == thread_count-1){
         //Data subset for rank 0
         //Gets the remaining unassigned data points from remainder
-        local_start = 0;
-        local_end = chunk_size + remainder_size;
+        local_start = my_rank * chunk_size;
+        local_end = local_start + chunk_size + remainder_size;
     }
-
+    
     int bin = 0;
     //start at local count
     for (int i = local_start; i < local_end; i++){
         for(int j = 0; j < bin_count; j++){
             if (j != 0){
                 //Test of the sorting algorithm
-                printf(" %.1f <= %.1f < %.1f \n", bin_maxes[i-1], data, bin_maxes[i]);
                 if (bin_maxes[j-1] <= data[i] && data[i] < bin_maxes[j]){
                     local_bin_counts[j]++;
                 }
@@ -96,24 +95,6 @@ void* thread_function(void* rank){
             }
         }
     }
-    //int * local_bin_counts = malloc(bin_count*sizeof(int));
-    
+
     return local_bin_counts;
 }
-
-/* int Find_bin(float data,float bin_maxes[], float bin_count, float min_meas){
-    for(int i = 0; i < bin_count; i++){
-        if (i != 0){
-            //Test of the sorting algorithm
-            //printf(" %.1f <= %.1f < %.1f \n", bin_maxes[i-1], data, bin_maxes[i]);
-            if (bin_maxes[i-1] <= data && data < bin_maxes[i]){
-                return i;
-            }
-        } else {
-            if (min_meas <= data && data < bin_maxes[0]){
-                return i;
-            }
-        }
-    }
-} */
-
