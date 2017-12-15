@@ -25,6 +25,7 @@ int main (){
     }
 
     int bin = 0;
+    
     for (int i = 0; i < data_count; i++){
         bin = Find_bin(data[i], bin_maxes, bin_count, min_meas);
         bin_counts[bin]++;
