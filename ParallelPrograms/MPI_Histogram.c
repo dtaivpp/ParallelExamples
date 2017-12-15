@@ -41,16 +41,16 @@ int main (){
     int remainder_size = data_count % comm_sz;
     int local_end, local_start;
 
-    if (my_rank != 0){
-        //Data subset if not process 0
+    if (my_rank != comm_sz - 1){
+        // If I am not the last process
         local_start = my_rank * chunk_size;
         local_end = local_start + chunk_size;
     }
-    if (my_rank == 0){
-        //Data subset for rank 0
+    if (my_rank == comm_sz - 1){
+        //If I am the last process
         //Gets the remaining unassigned data points from remainder
-        local_start = 0;
-        local_end = chunk_size + remainder_size;
+        local_start = my_rank * chunk_size;
+        local_end = local_start + chunk_size + remainder_size;
     }
 
     if (my_rank != 0){
